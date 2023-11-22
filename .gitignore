@@ -1,0 +1,6 @@
+.vscode
+.env
+*.json
+*spreadsheet_ID.txt
+**/__pycache__/
+**.pytest_cache/

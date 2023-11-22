@@ -1,0 +1,2 @@
+python-dotenv=1.*
+gspread=5.1*
