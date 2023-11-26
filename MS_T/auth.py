@@ -1,7 +1,13 @@
+import os
+import random
+import string
+import time
+import getpass
 import gspread
-import os, time, random, string, getpass
+from .utils import re_dirname
 
-sID_file_path = os.path.join(os.getcwd(), 'spreadsheet_ID.txt')
+dirpath = re_dirname(os.path.dirname(__file__), 1)
+sID_file_path = os.path.join(dirpath, 'spreadsheet_ID.txt')
 
 def save_worksheetID(ID):
     with open(sID_file_path, 'w') as file:
@@ -13,8 +19,8 @@ def get_worksheetID():
             return file.readline().strip('\n')
         
 def authorize():
-    credentials_path = os.path.join(os.getcwd(), 'credentials.json')
-    authorized_user = os.path.join(os.getcwd(), 'authorized_user.json')
+    credentials_path = os.path.join(dirpath, 'credentials.json')
+    authorized_user = os.path.join(dirpath, 'authorized_user.json')
 
     return gspread.oauth(
         credentials_filename=credentials_path,
