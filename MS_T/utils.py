@@ -1,6 +1,17 @@
-import re, requests
+import os
+import re
+import requests
 
 imdbID_pattern = re.compile(r'^tt\d+$', re.IGNORECASE)
+
+def re_dirname(filepath, n):
+    path = os.path.dirname(filepath)
+    n -= 1
+
+    if n >= 1:
+        return re_dirname(path, n)
+    
+    return path
 
 def msdb_user_confirm(text):
     while True:
