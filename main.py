@@ -1,6 +1,16 @@
 import MS_T
+import os
+from dotenv import load_dotenv
 
 API_KEY = 'YOUR_OMDB_API_KEY'
+env_path = os.path.join(os.getcwd(), '.env')
+
+if API_KEY == 'YOUR_OMDB_API_KEY' and os.path.exists(env_path):
+    load_dotenv(env_path)
+    API_KEY = os.getenv('APIKEY')
+
+if API_KEY is None:
+    raise ValueError('Unable to find APIKEY')
 
 spreadsheet = MS_T.Spreadsheet(API_KEY=API_KEY)
 MENU_OPTIONS = {

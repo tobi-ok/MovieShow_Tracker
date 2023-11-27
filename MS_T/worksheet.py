@@ -302,7 +302,7 @@ class Worksheet:
         :rtype: dict
         '''
 
-        ms = k.get('param') or sqGet(entry=k.get('title'), API_KEY=self.API_KEY)
+        ms = k.get('param') or sqGet(title=k.get('title'), API_KEY=self.API_KEY)
 
         if not ms:
             return
