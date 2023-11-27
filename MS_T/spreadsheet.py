@@ -9,7 +9,7 @@ import csv, os
 
 EXPORT_TITLE = 'Movie/Show Tracker Exports'
 MAX_ENTRIES_PER_ROW = 15
-MAX_SHEET_ROWS = 100000 # Increase as necessary
+MAX_SHEET_ROWS = 50000
 cell_titlerow_format = {
     'backgroundColor': {
         'red': 249/255,

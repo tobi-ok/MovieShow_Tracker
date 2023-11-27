@@ -11,6 +11,10 @@ MENU_OPTIONS = {
         'desc': 'Get spreadsheet title',
         'func': lambda **k: print(spreadsheet.title)
     },
+    ('url'): {
+        'desc': 'Get spreadsheet url',
+        'func': lambda **k: print(spreadsheet.url)
+    },
     ('id'): {
         'desc': 'Get spreadsheet id',
         'func': lambda **k: print(spreadsheet.id)
