@@ -2,15 +2,17 @@ import MS_T
 import os
 from dotenv import load_dotenv
 
-API_KEY = 'YOUR_OMDB_API_KEY'
-env_path = os.path.join(os.getcwd(), '.env')
-
-if API_KEY == 'YOUR_OMDB_API_KEY' and os.path.exists(env_path):
-    load_dotenv(env_path)
-    API_KEY = os.getenv('APIKEY')
+API_KEY = None
 
 if API_KEY is None:
-    raise ValueError('Unable to find APIKEY')
+    env_path = os.path.join(os.path.dirname(__file__), '.env')
+    
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+        API_KEY = os.getenv('APIKEY')
+    
+    if API_KEY is None:
+        raise ValueError('Unable to find APIKEY')
 
 spreadsheet = MS_T.Spreadsheet(API_KEY=API_KEY)
 MENU_OPTIONS = {
@@ -94,8 +96,6 @@ MENU_OPTIONS = {
         'func': lambda **k: print(k['execute_on_worksheet']('values'))
     }
 }
-
-MS_T.auth.API_KEY = API_KEY
 
 def display_commands():
     print('\nList of commands:\n' + '\n'.join([f'{i+1}. {v} - {MENU_OPTIONS[v]["desc"]}' for i, v in enumerate(MENU_OPTIONS)]) + '\n')

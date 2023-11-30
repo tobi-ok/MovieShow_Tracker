@@ -118,9 +118,12 @@ def query(params:dict=None) -> dict:
 
     :rtype: dict    
     '''
-
+    
     if not isinstance(params, dict):
-        raise TypeError(f"Error: Invalid arguements\nparams: {params}")
+        raise TypeError(f"Invalid arguements\nparams: {params}")
+    
+    if not params.get('apikey'):
+        raise IndexError('Missing apikey')
 
     base_url = "https://www.omdbapi.com/"
     results = requests.get(base_url, params)
@@ -188,4 +191,4 @@ def sqGet(title=None, API_KEY=None):
         return ms
         
     # Broad search
-    return search_by_title(title)
+    return search_by_title(title, API_KEY=API_KEY)
