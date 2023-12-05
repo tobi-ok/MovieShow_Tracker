@@ -5,6 +5,7 @@ from .auth import (
     save_worksheetID
 )
 from .worksheet import Worksheet
+from .utils import sqGet, query, get_season_episode
 import csv, os
 
 EXPORT_TITLE = 'Movie/Show Tracker Exports'
@@ -145,31 +146,80 @@ class Spreadsheet:
         :rtype: dict
         '''
 
-        param = k.get('param')
+        param = k.get('param') or sqGet(API_KEY=self.API_KEY)
+
+        if not k.get('param'):
+            if isinstance(param, dict) and param['Type'] == 'series':
+                se = get_season_episode(season_cap=param.get('totalSeasons'))
+
+                if not se:
+                    return
+                
+                if isinstance(se, bool):
+                    if not param.get('totalSeasons') or param['totalSeasons'] == 'N/A':
+                        print("Error: Unable to get season data")
+                        return
+                    
+                    param['Episodes'] = []
+
+                    for i in range(1, int(param['totalSeasons'])+1):
+                        season = query({
+                            'i': param['imdbID'],
+                            'Season': i,
+                            'apikey': self.API_KEY
+                        })
+
+                        if not season:
+                            print(f"Failed to get data from season {i} of {param['Title']}")
+                            continue
+
+                        for episode in season['Episodes']:
+                            episode['eimdbID'] = episode['imdbID']
+                            episode['imdbID'] = param['imdbID']
+                            param['Episodes'].append(episode)
+                else:
+                    param = query({
+                        'i': param['imdbID'],
+                        'Season': se.get('s') if isinstance(se, dict) else None,
+                        'Episode': se.get('e') if isinstance(se, dict) else None,
+                        'apikey': self.API_KEY
+                    })
+
+                    if not param:
+                        return
+                    
+                    param['eimdbID'] = param['imdbID']
+                    param['imdbID'] = param['seriesID']
+                    param.pop('seriesID')
 
         if not param:
-            raise IndexError(f"Error: Missing param")
-
+            return
+        
         title = param.get('Title')
         ID = param['eimdbID'] if param.get('eimdbID') and param['eimdbID'] != 'N/A' else param.get('imdbID')
 
         if not title or not ID:
-            raise IndexError(
-                f"Error: Missing args - Title: {title}, eimdbID: {param.get('eimdbID')}, imdbID: {param.get('imdbID')}")
+            raise IndexError(f"Error: Missing args - Title: {title}, ID: {ID}\nData: {param}")
 
         results = []
-        for i in self.worksheets:
-            k['sheet'] = i.title
-            data = i.find(**k)
+
+        def find(t, d):
+            data = i.find(sheet=t, param=d)
 
             if data:
                 if not k.get('noprint'):
-                    print(f'"{data["Title"]}" in worksheet "{i.title}"\nData: {data}')
+                    print(f'\nFound in worksheet: "{i.title}"\n{data}\n')
                 results.append(data)
 
-        if results:
-            return results
-        
+        for i in self.worksheets:            
+            if param.get('Episodes'):
+                for x in param['Episodes']:
+                    find(i.title, x)
+            else:
+                find(i.title, param)
+                
+        return results
+
     def count_data(self):
         m = input("Count all worksheets? Y/N: ")
         a = 0

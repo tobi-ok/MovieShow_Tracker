@@ -3,6 +3,23 @@ import re
 import requests
 
 imdbID_pattern = re.compile(r'^tt\d+$', re.IGNORECASE)
+season_episode_modecmds =\
+'''
+    Mode options:
+    a* - All series' seasons
+    e* - All season 1 episodes (if any)
+    (m, #) - Specific season or episode
+    c - Cancel
+    (s, skip) - Default S1E1
+'''
+season_episode_cmds =\
+'''
+    Input options:
+    # - Season or episode
+    r - Redo
+    c - Cancel
+    (s, skip) - Default 1
+'''
 
 def re_dirname(filepath, n):
     path = os.path.dirname(filepath)
@@ -12,6 +29,69 @@ def re_dirname(filepath, n):
         return re_dirname(path, n)
     
     return path
+
+def get_season_episode(season_cap=None):
+        season_cap = int(season_cap) if season_cap and season_cap != 'N/A' else None
+
+        def get_(specified_input=None, name=None):
+            se_input = specified_input or input(f'Enter {name}: ').lower()
+
+            if se_input == '?':
+                print(season_episode_cmds)
+                return get_(name=name)
+            elif se_input == 'r':
+                return se_input
+            elif se_input == 's':
+                return 1
+            elif se_input == 'c':
+                return None
+            
+            try:
+                return int(se_input)
+            except ValueError:
+                print('Error: Invalid input')
+                return get_(name=name)
+            
+        print('Enter ? for cmds')
+
+        # Main
+        while True:
+            input_mode = input(f'Select mode: ').lower()
+
+            def manual_input(entered_input=None):
+                s = get_(specified_input=entered_input, name='Season')
+                if not s: return
+                elif s == 'r': return manual_input()
+
+                if season_cap and s > season_cap:
+                    print(f'\nNOTE - Input season "{s}" is higher than total seasons "{season_cap}"\nDefault: Latest season - "{season_cap}"\n')
+                    s = season_cap          
+
+                e = get_(name='Episode')
+                if not e: return
+                elif e == 'r': return manual_input()                   
+            
+                return {'s': s, 'e': e}
+
+            if input_mode == '?':
+                print(season_episode_modecmds)
+                continue
+            elif input_mode == 'a*':
+                return True
+            elif input_mode == 'e*':
+                return {'s': 1}
+            elif input_mode == 'm':
+                return manual_input()
+            elif input_mode == 's' or input_mode == 'skip':
+                return {'s': 1, 'e': 1}
+            elif input_mode == 'c':
+                return
+            
+            #
+            try:
+                return manual_input(int(input_mode))
+            except ValueError:
+                print("Error: Invalid Input")
 
 def msdb_user_confirm(text):
     while True:
@@ -113,7 +193,8 @@ def query(params:dict=None) -> dict:
         'Title': 'Loki', 
         'Season': '1', 
         'totalSeasons': '2', 
-        'Episodes': [{'Title': 'Glorious Purpose', 'Released': '2021-06-09', 'Episode': '1', 'imdbRating': '8.6', 'imdbID': 'tt10161330'}, {'Title': 'The Variant', 'Released': '2021-06-16', 'Episode': '2', 'imdbRating': '8.7', 'imdbID': 'tt10161334'}, {'Title': 'Lamentis', 'Released': '2021-06-23', 'Episode': '3', 'imdbRating': '7.7', 'imdbID': 'tt10161336'}, {'Title': 'The Nexus Event', 'Released': '2021-06-30', 'Episode': '4', 'imdbRating': '9.0', 'imdbID': 'tt10161340'}, {'Title': 'Journey Into Mystery', 'Released': '2021-07-07', 'Episode': '5', 'imdbRating': '8.9', 'imdbID': 'tt10161338'}, {'Title': 'For All Time. Always.', 'Released': '2021-07-14', 'Episode': '6', 'imdbRating': '8.6', 'imdbID': 'tt10161342'}], 'Response': 'True'
+        'Episodes': [{'Title': 'Glorious Purpose', 'Released': '2021-06-09', 'Episode': '1', 'imdbRating': '8.6', 'imdbID': 'tt10161330'}, {'Title': 'The Variant', 'Released': '2021-06-16', 'Episode': '2', 'imdbRating': '8.7', 'imdbID': 'tt10161334'}, {'Title': 'Lamentis', 'Released': '2021-06-23', 'Episode': '3', 'imdbRating': '7.7', 'imdbID': 'tt10161336'}, {'Title': 'The Nexus Event', 'Released': '2021-06-30', 'Episode': '4', 'imdbRating': '9.0', 'imdbID': 'tt10161340'}, {'Title': 'Journey Into Mystery', 'Released': '2021-07-07', 'Episode': '5', 'imdbRating': '8.9', 'imdbID': 'tt10161338'}, {'Title': 'For All Time. Always.', 'Released': '2021-07-14', 'Episode': '6', 'imdbRating': '8.6', 'imdbID': 'tt10161342'}],
+        'Response': 'True'
         }
 
     :rtype: dict    

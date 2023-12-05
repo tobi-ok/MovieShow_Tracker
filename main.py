@@ -53,7 +53,7 @@ MENU_OPTIONS = {
     },
     ('f', 'find'): {
         'desc': 'Find entry',
-        'func': lambda **k: print(k['execute_on_worksheet']('find'))
+        'func': lambda **k: print('Not found') if not spreadsheet.get_dupes() else None
     },
     ('mf'): {
         'desc': 'Find entry without querying',

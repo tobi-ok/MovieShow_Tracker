@@ -2,27 +2,11 @@ from .utils import (
     query,
     sqGet,
     msdb_user_confirm,
-    imdbID_pattern
+    imdbID_pattern,
+    get_season_episode
 )
 from datetime import (date, datetime)
 
-season_episode_modecmds =\
-'''
-    Mode options:
-    a* - All series' seasons
-    e* - All season 1 episodes (if any)
-    (m, #) - Specific season or episode
-    c - Cancel
-    (s, skip) - Default S1E1
-'''
-season_episode_cmds =\
-'''
-    Input options:
-    # - Season or episode
-    r - Redo
-    c - Cancel
-    (s, skip) - Default 1
-'''
 immutable_titles = [
     'imdbID',
     'Season',
@@ -69,70 +53,7 @@ class Worksheet:
     
     def update_to_row_titles(self):
         self.g.batch_clear(['A1:Z1'])
-        self.g.update('A1:Z1', [self.spreadsheet.row_titles])
-
-    def get_season_episode(self, season_cap=None):
-        season_cap = int(season_cap) if season_cap and season_cap != 'N/A' else None
-
-        def get_(specified_input=None, name=None):
-            se_input = specified_input or input(f'Enter {name}: ').lower()
-
-            if se_input == '?':
-                print(season_episode_cmds)
-                return get_(name=name)
-            elif se_input == 'r':
-                return se_input
-            elif se_input == 's':
-                return 1
-            elif se_input == 'c':
-                return None
-            
-            try:
-                return int(se_input)
-            except ValueError:
-                print('Error: Invalid input')
-                return get_(name=name)
-            
-        print('Enter ? for cmds')
-
-        # Main
-        while True:
-            input_mode = input(f'Select mode: ').lower()
-
-            def manual_input(entered_input=None):
-                s = get_(specified_input=entered_input, name='Season')
-                if not s: return
-                elif s == 'r': return manual_input()
-
-                if season_cap and s > season_cap:
-                    print(f'\nNOTE - Input season "{s}" is higher than total seasons "{season_cap}"\nDefault: Latest season - "{season_cap}"\n')
-                    s = season_cap          
-
-                e = get_(name='Episode')
-                if not e: return
-                elif e == 'r': return manual_input()                   
-            
-                return {'s': s, 'e': e}
-
-            if input_mode == '?':
-                print(season_episode_modecmds)
-                continue
-            elif input_mode == 'a*':
-                return True
-            elif input_mode == 'e*':
-                return {'s': 1}
-            elif input_mode == 'm':
-                return manual_input()
-            elif input_mode == 's' or input_mode == 'skip':
-                return {'s': 1, 'e': 1}
-            elif input_mode == 'c':
-                return
-            
-            #
-            try:
-                return manual_input(int(input_mode))
-            except ValueError:
-                print("Error: Invalid Input")        
+        self.g.update('A1:Z1', [self.spreadsheet.row_titles])      
 
     def find(self, **k):
         ''' Returns entry where found
@@ -151,6 +72,7 @@ class Worksheet:
             'Genre': 'Crime, Drama, Thriller'
         }
 
+        :param k['param']: data 
         :param k['imdbID']: imdbID,
         :param k['eimdbID']: eimdbID
 
@@ -171,7 +93,7 @@ class Worksheet:
                 return
                                     
             if ms['Type'] == 'series':
-                se = self.get_season_episode(season_cap=ms.get('totalSeasons'))
+                se = get_season_episode(season_cap=ms.get('totalSeasons'))
 
                 if not se:
                     return
@@ -324,7 +246,7 @@ class Worksheet:
 
             return self.cache_append(param=param)
         elif ms['Type'] == 'series':
-            se = {'s': ms['Season'], 'e': ms.get('Episode')} if ms.get('Season') else self.get_season_episode(season_cap=ms.get('totalSeasons'))
+            se = {'s': ms['Season'], 'e': ms.get('Episode')} if ms.get('Season') else get_season_episode(season_cap=ms.get('totalSeasons'))
 
             if not se:
                 return
