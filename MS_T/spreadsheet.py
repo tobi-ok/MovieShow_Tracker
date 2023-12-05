@@ -151,7 +151,7 @@ class Spreadsheet:
             raise IndexError(f"Error: Missing param")
 
         title = param.get('Title')
-        ID = param['eimdbID'] if param['eimdbID'] != 'N/A' else param.get('imdbID')
+        ID = param['eimdbID'] if param.get('eimdbID') and param['eimdbID'] != 'N/A' else param.get('imdbID')
 
         if not title or not ID:
             raise IndexError(
@@ -164,7 +164,7 @@ class Spreadsheet:
 
             if data:
                 if not k.get('noprint'):
-                    print(f"{data['Title']} in worksheet '{i.title}'")
+                    print(f'"{data["Title"]}" in worksheet "{i.title}"\nData: {data}')
                 results.append(data)
 
         if results:
